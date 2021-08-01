@@ -13,7 +13,3 @@ $ npm install
 ```bash
 # development
 $ npm run start
-
-## License
-
-Nest is [MIT licensed](LICENSE).
