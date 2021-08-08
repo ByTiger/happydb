@@ -1,29 +1,41 @@
 import { ApiProperty } from "@nestjs/swagger";
 
 export class ChatDto {
-  @ApiProperty({ type: String })
+  @ApiProperty()
   id: string;
 
-  @ApiProperty({ type: String })
+  @ApiProperty()
+  forumId: number;
+
+  @ApiProperty()
   senderName: string;
 
-  @ApiProperty({ type: String, nullable: true })
+  @ApiProperty({ required: false })
   receiverName?: string;
 
-  @ApiProperty({ type: String })
+  @ApiProperty()
   message: string;
 
-  @ApiProperty({ type: String })
+  @ApiProperty()
   date: string;
 }
 
 export class AddMessageDto {
-  @ApiProperty({ type: String })
-  senderName: string;
+  @ApiProperty()
+  forumId: number;
 
-  @ApiProperty({ type: String, nullable: true })
+  @ApiProperty({ required: false })
   receiverName?: string;
 
-  @ApiProperty({ type: String })
+  @ApiProperty()
   message: string;
+}
+
+export class ChatEntity {
+  id: string;
+  forumId: number;
+  senderName: string;
+  receiverName?: string;
+  message: string;
+  date: string;
 }

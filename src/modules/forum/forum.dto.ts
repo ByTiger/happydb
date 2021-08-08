@@ -1,21 +1,40 @@
 import { ApiProperty } from "@nestjs/swagger";
 
 export class ForumDto {
-  @ApiProperty({ type: String })
+  @ApiProperty()
+  id: number;
+
+  @ApiProperty()
   title: string;
 
-  @ApiProperty({ type: String })
+  @ApiProperty()
   photo: string;
 
-  @ApiProperty({ type: String })
-  name: string;
+  @ApiProperty()
+  owner: string;
 
-  @ApiProperty({ type: Number })
+  @ApiProperty()
   replies: number;
 
-  @ApiProperty({ type: String })
+  @ApiProperty()
   date: string;
 
-  @ApiProperty({ type: Boolean })
+  @ApiProperty()
   like: boolean;
+}
+
+export class ForumEntity {
+  id: number;
+
+  title: string;
+
+  photo: string;
+
+  owner: string;
+
+  replies: number;
+
+  date: string;
+
+  likes: string[];
 }

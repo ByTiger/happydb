@@ -1,53 +1,53 @@
-import * as fs from "fs";
-import * as path from "path";
-
-import { BadRequestException, Body, Controller, Get, Post } from "@nestjs/common";
-import { ApiBody, ApiOkResponse } from "@nestjs/swagger";
+import { BadRequestException, Body, Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
+import { ApiBody, ApiHeader, ApiOkResponse } from "@nestjs/swagger";
 import { v4 as uuid } from "uuid";
 
+import { AuthGuard } from "src/utils/auth.guard";
+
+import { ForumService } from "../forum/forum.service";
+
 import { AddMessageDto, ChatDto } from "./chat.dto";
+import { ChatService } from "./chat.service";
 
 @Controller("chat")
+@ApiHeader({ name: "X-User-Name", description: "User name" })
+@UseGuards(AuthGuard)
 export class ChatController {
-  chatMessages: ChatDto[];
-  constructor() {
-    this.chatMessages = [];
-
-    const chatFile = path.join(__dirname, "../../data/chat.json");
-    const data: string = fs.readFileSync(chatFile).toString();
-    if (data && typeof data === "string" && data.length > 1) {
-      this.chatMessages = JSON.parse(data);
-      console.log(`Loaded ${this.chatMessages.length} chat messages`);
-    }
-  }
+  constructor(private forumService: ForumService, private chatService: ChatService) {}
 
   @ApiOkResponse({ type: [ChatDto] })
-  @Get("/all")
-  getAllTags(): ChatDto[] {
-    return this.chatMessages;
+  @Get("/all/:forumId")
+  getAllTags(@Param("forumId") forumId: string): ChatDto[] {
+    const forum_id = parseInt(forumId, 10);
+    if (!Number.isInteger(forum_id)) throw new BadRequestException();
+
+    const forum = this.forumService.getForumInfo(forum_id);
+    if (!forum) throw new BadRequestException();
+
+    return this.chatService.getAll().filter(rec => rec.forumId === forum_id);
   }
 
   @ApiBody({ type: AddMessageDto })
   @ApiOkResponse({ type: ChatDto })
   @Post("/add")
-  addTag(@Body() addMsg: AddMessageDto): ChatDto {
-    if (!addMsg.senderName || !addMsg.message) throw new BadRequestException();
+  addTag(@Body() addMsg: AddMessageDto, @Req() req: any): ChatDto {
+    if (!addMsg.forumId || !addMsg.message) throw new BadRequestException();
+
+    const forum = this.forumService.getForumInfo(addMsg.forumId);
+    if (!forum) throw new BadRequestException();
+    forum.replies++;
+
     const rec = {
       ...addMsg,
+      senderName: req.userName,
       id: uuid(),
       date: new Date().toISOString(),
     };
-    this.chatMessages.push(rec);
+    this.chatService.getAll().push(rec);
 
-    this._saveDB();
+    this.chatService.saveDB();
+    this.forumService.saveDB();
 
     return rec;
-  }
-
-  _saveDB() {
-    const chatFile = path.join(__dirname, "../../data/chat.json");
-    const jsonContent = JSON.stringify(this.chatMessages);
-
-    fs.writeFileSync(chatFile, jsonContent);
   }
 }
